@@ -4,33 +4,52 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+help_string = """
+/help   -> prints out help string
+/clear -> clears chat history
+/exit  -> exits the program
+"""
+
+
+class ChatBot:
+    def __init__(self):
+        self.chat_history = []
+    
+    def interpret_command(self, command):
+        match command:
+            case '/help':
+                print(help_string)
+            case '/clear':
+                print("[*] History Cleared")
+                self.chat_history = []
+            case '/exit':
+                print("[*] Bye!")
+                os._exit(0)
+            case _:
+                print("Unknown Command")
+
+
 def main():
-    chat_history  = []
-    clear_command = '/clear'
-    exit_command  = '/exit'
+    bot = ChatBot()
 
     while True:
         user_input = input("\r\n> ")
 
-        if user_input == clear_command:
-            chat_history = []
-            print("[*] History cleared!")
+        if user_input[0] == '/':
+            bot.interpret_command(user_input)
             continue
-        elif user_input == exit_command:
-            print("[*] Bye!")
-            os._exit(0)
-            break
+
 
         message = {"role": "user", "content": user_input}
-        chat_history.append(message)
+        bot.chat_history.append(message)
 
         response = str()
-        for chunk in completion(model = os.environ["model"], messages=chat_history, stream=True):
+        for chunk in completion(model = os.environ["model"], messages=bot.chat_history, stream=True):
             print(chunk.choices[0].delta.content or "", end="")
             response += chunk.choices[0].delta.content or ""
         
         full_response = {"role": "assistant", "content": response}
-        chat_history.append(full_response)
+        bot.chat_history.append(full_response)
 
         
 
